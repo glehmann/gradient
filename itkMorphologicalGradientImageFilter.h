@@ -22,9 +22,7 @@
 namespace itk {
 
 /** \class MorphologicalGradientImageFilter
- * \brief TODO
- *
- * TODO
+ * \brief Morphological gradients enhance the variation of pixel intensity in a given neighborhood.
  *
  * Morphological gradient is described in Chapter 3.8.1 of Pierre Soille's book 
  * "Morphological Image Analysis: Principles and Applications", 
@@ -85,9 +83,11 @@ protected:
   ~MorphologicalGradientImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
-  /** MorphologicalGradientImageFilter needs the entire input be
-   * available. Thus, it needs to provide an implementation of
-   * GenerateInputRequestedRegion(). */
+  /** MorphologicalGradientImageFilter need to make sure they request enough of an
+   * input image to account for the structuring element size.  The input
+   * requested region is expanded by the radius of the structuring element.
+   * If the request extends past the LargestPossibleRegion for the input,
+   * the request is cropped by the LargestPossibleRegion. */
   void GenerateInputRequestedRegion() ;
 
   void GenerateData();

@@ -24,6 +24,8 @@
 #include "itkGrayscaleDilateImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkProgressAccumulator.h"
+#include "itkImageRegionIterator.h"
+#include "itkImageRegionConstIterator.h"
 
 
 namespace itk {
@@ -104,35 +106,60 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>
     dilate = GrayscaleDilateImageFilter<TInputImage, TInputImage, TKernel>::New();
   dilate->SetInput( this->GetInput() );
   dilate->SetKernel(this->m_Kernel);
+  progress->RegisterInternalFilter(dilate,.45f);
   
   // Delegate to an erode filter.
   typename GrayscaleErodeImageFilter<TInputImage, TInputImage, TKernel>::Pointer
     erode = GrayscaleErodeImageFilter<TInputImage, TInputImage, TKernel>::New();
   erode->SetInput( this->GetInput() );
   erode->SetKernel(this->m_Kernel);
-  
-  // Need to subtract the eroded image from the dialted one
-  typename SubtractImageFilter<TInputImage, TInputImage, TOutputImage>::Pointer
-    subtract=SubtractImageFilter<TInputImage,TInputImage,TOutputImage>::New();
-  subtract->SetInput1( dilate->GetInput() );
-  subtract->SetInput2( erode->GetOutput() );
-
-  // graft our output to the subtract filter to force the proper regions
-  // to be generated
-  subtract->GraftOutput( this->GetOutput() );
-
-  // run the algorithm
-  progress->RegisterInternalFilter(dilate,.45f);
   progress->RegisterInternalFilter(erode,.45f);
-  progress->RegisterInternalFilter(subtract,.1f);
+  
+//   // Need to subtract the eroded image from the dialted one
+//   typename SubtractImageFilter<TInputImage, TInputImage, TOutputImage>::Pointer
+//     subtract=SubtractImageFilter<TInputImage,TInputImage,TOutputImage>::New();
+//   subtract->SetInput1( dilate->GetInput() );
+//   subtract->SetInput2( erode->GetOutput() );
+// 
+//   // graft our output to the subtract filter to force the proper regions
+//   // to be generated
+//   subtract->GraftOutput( this->GetOutput() );
+// 
+//   // run the algorithm
+//   progress->RegisterInternalFilter(subtract,.1f);
+// 
+//   dilate->Update(); // needed to have the right progress values
+//   subtract->Update();
+// 
+//   // graft the output of the subtract filter back onto this filter's
+//   // output. this is needed to get the appropriate regions passed
+//   // back.
+//   this->GraftOutput( subtract->GetOutput() );
 
-  dilate->Update(); // needed to have the right progress values
-  subtract->Update();
+  dilate->Update();
+  erode->Update();
 
-  // graft the output of the subtract filter back onto this filter's
-  // output. this is needed to get the appropriate regions passed
-  // back.
-  this->GraftOutput( subtract->GetOutput() );
+  const TInputImage* inputPtr1 = dilate->GetOutput();
+  const TInputImage* inputPtr2 = erode->GetOutput();
+  const TInputImage* inputPtr = this->GetInput();
+  TOutputImage* outputPtr = this->GetOutput();
+
+  ImageRegionConstIterator<TInputImage> inputIt1(inputPtr1, inputPtr->GetRequestedRegion());
+  ImageRegionConstIterator<TInputImage> inputIt2(inputPtr2, inputPtr->GetRequestedRegion());
+
+  ImageRegionIterator<TOutputImage> outputIt(outputPtr, inputPtr->GetRequestedRegion());
+
+  inputIt1.GoToBegin();
+  inputIt2.GoToBegin();
+  outputIt.GoToBegin();
+
+  while( !inputIt1.IsAtEnd() )
+    {
+    outputIt.Set( static_cast< typename TOutputImage::PixelType >( inputIt1.Get() - inputIt2.Get() ) );
+    ++inputIt2;
+    ++inputIt1;
+    ++outputIt;
+    }
 
 }
 

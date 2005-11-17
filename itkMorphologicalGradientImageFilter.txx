@@ -106,6 +106,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>
     dilate = GrayscaleDilateImageFilter<TInputImage, TInputImage, TKernel>::New();
   dilate->SetInput( this->GetInput() );
   dilate->SetKernel(this->m_Kernel);
+  dilate->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(dilate,.45f);
   
   // Delegate to an erode filter.
@@ -113,6 +114,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>
     erode = GrayscaleErodeImageFilter<TInputImage, TInputImage, TKernel>::New();
   erode->SetInput( this->GetInput() );
   erode->SetKernel(this->m_Kernel);
+  erode->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter(erode,.45f);
   
   // Need to subtract the eroded image from the dialted one
@@ -120,6 +122,7 @@ MorphologicalGradientImageFilter<TInputImage, TOutputImage, TKernel>
     subtract=SubtractImageFilter<TInputImage,TInputImage,TOutputImage>::New();
   subtract->SetInput1( dilate->GetOutput() );
   subtract->SetInput2( erode->GetOutput() );
+  subtract->SetNumberOfThreads( this->GetNumberOfThreads() );
 
   // graft our output to the subtract filter to force the proper regions
   // to be generated

@@ -19,18 +19,18 @@
 % \tableofcontents
 
 \section{Description}
-Morphological gradients enhance the variation of pixel intensity in a given neighborhood. This filter can be used to produce the basic morphological gradient (aka Beucher's gradient), the thick gradient and the directionnal gradient, depending of the size and the shape of structuring element.
+Morphological gradients enhance the variation of pixel intensity in a given neighborhood. This filter can be used to produce the basic morphological gradient (aka Beucher's gradient), the thick gradient and the directionnal gradient, depending on the size and the shape of structuring element.
 
 \section{Implementation}
-MorphologicalGradientImageFilter is a mini pipeline with a GrayscaleDilateImageFilter, a GrayscaleErodeImageFilter and a SubtractImageFilter. A lots more efficient implementation should be done by doing the erosion the dilation and the subtraction in the same pass. It should be easy and efficent to that with a moving histogram algorithm (not ready yet).
+MorphologicalGradientImageFilter is a mini pipeline with a GrayscaleDilateImageFilter, a GrayscaleErodeImageFilter and a SubtractImageFilter. A more efficient implementation should be done by doing the erosion the dilation and the subtraction in the same pass. It should be easy and efficient to do with a moving histogram algorithm (not ready yet).
 
 \section{Usage}
-As usual, user has to include the header:
+As usual, user has to include the headers:
 \begin{lstlisting}
 #include "itkMorphologicalGradientImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 \end{lstlisting}
-Create the structuring element\footnote{Creating a structuring element is mandatory, even if a good default behavior would have be to use a structuring element of radius one. This problem is related to bug \#1877.}.
+Create the structuring element\footnote{Creating a structuring element has to be done, although it have been better to have a default structuring element of radius one. This problem is related to bug \#1877.}.
 \begin{lstlisting}
 typedef itk::BinaryBallStructuringElement< PType, dim >
   StructuringElementType;
@@ -46,7 +46,6 @@ GradientType::Pointer gradient = GradientType::New();
 gradient->SetInput( filter->GetOutput() );
 gradient->SetKernel( structuringElement );
 \end{lstlisting}
-
 
 \section{Example}
 \begin{figure}[hb]
